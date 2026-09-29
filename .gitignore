@@ -1,0 +1,4 @@
+eventx
+.env
+.env.*
+!.env.example
