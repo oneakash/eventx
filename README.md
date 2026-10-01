@@ -25,7 +25,6 @@ TICKETMASTER_API_KEY  = <server-side key>
 | GET | `/events?city=&countryCode=` | Music + Sports listing |
 | GET | `/events/:eventId` | Event details |
 | GET | `/redirect/:eventId` | HTTP 302 to approved ticket URL |
-| GET | `/demo/tickets/:eventId` | Mock-only safe local destination |
 
 ### JSON APIs
 | Method | Path | Purpose |
