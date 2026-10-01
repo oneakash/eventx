@@ -8,13 +8,6 @@ details, and continue safely to the ticket provider.
 - Go 1.21+
 - Beego v2
 
-## Run (mock mode — no keys required)
-```bash
-go mod tidy
-go run main.go
-# open http://localhost:8080
-```
-
 ## Run (live mode)
 Set environment variables in `.env` file:
 ```
