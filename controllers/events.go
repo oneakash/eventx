@@ -20,12 +20,14 @@ func (c *EventsController) List() {
 	music,sports:=svc.GetListing(city,countryCode,scenario)
 
 	// Both failed -> 502
-	if music.Err!="" && sports.Err!="" {
-		c.Ctx.Output.SetStatus(502)
-		c.Data["Error"]= "Event providers are currently unavailable."
-		c.TplName = "listing.tpl"
-		return
-	}
+	if music.Err != "" && sports.Err != "" {
+    c.Ctx.Output.SetStatus(502)
+    c.Data["json"] = map[string]string{
+        "error": "Event providers are currently unavailable.",
+    }
+    c.ServeJSON()
+    return
+}
 	c.Data["City"] = city
 	c.Data["CountryCode"] = countryCode
 	c.Data["Music"] = music
@@ -36,28 +38,28 @@ func (c *EventsController) List() {
 }
 
 func (c *EventsController) Details() {
-	eventID:=c.Ctx.Input.Param(":eventId")
-	if eventID==""{
+	eventID := c.Ctx.Input.Param(":eventId")
+	if eventID == "" {
 		c.Ctx.Output.SetStatus(404)
-		c.Data["Error"]="Event not found."
-		c.TplName="error.tpl"
-		return
-	}
-	p:=getProvider()
-	ev,err:=p.GetEvent(eventID)
-	if err!=nil {
-		c.Ctx.Output.SetStatus(404)
-		c.Data["Error"]="Event not found."
-		c.TplName="error.tpl"
+		c.Data["json"] = map[string]string{"error": "Event not found."}
+		c.ServeJSON()
 		return
 	}
 
-	// Determine if this is a mock ID
-	isMock:=strings.HasPrefix(eventID, "mock-")
-	c.Data["Event"]= ev
-	c.Data["IsMock"] =isMock
-	c.Data["ShowTickets"] =ev.TicketURL != "" || isMock
-	c.TplName ="details.tpl"
+	p := getProvider()
+	ev, err := p.GetEvent(eventID)
+	if err != nil {
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = map[string]string{"error": "Event not found."}
+		c.ServeJSON()
+		return
+	}
+
+	isMock := strings.HasPrefix(eventID, "mock-")
+	c.Data["Event"] = ev
+	c.Data["IsMock"] = isMock
+	c.Data["ShowTickets"] = ev.TicketURL != "" || isMock
+	c.TplName = "details.tpl"
 }
 
 var _ = models.Event{}

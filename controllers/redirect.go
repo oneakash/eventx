@@ -11,18 +11,21 @@ import (
 type RedirectController struct {
 	BaseController
 }
-
 func (c *RedirectController) Redirect() {
 	eventID := c.Ctx.Input.Param(":eventId")
 	if eventID == "" {
-		c.Abort("400")
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = map[string]string{"error": "Missing event ID."}
+		c.ServeJSON()
 		return
 	}
 
 	p := getProvider()
 	ev, err := p.GetEvent(eventID)
 	if err != nil {
-		c.Abort("404")
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = map[string]string{"error": "Event not found."}
+		c.ServeJSON()
 		return
 	}
 
@@ -37,7 +40,9 @@ func (c *RedirectController) Redirect() {
 
 	target, err := services.ValidateTicketURL(ev.TicketURL, approved)
 	if err != nil {
-		c.Abort("400")
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = map[string]string{"error": "Ticket destination is not allowed."}
+		c.ServeJSON()
 		return
 	}
 
