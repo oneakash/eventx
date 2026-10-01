@@ -10,6 +10,13 @@ import (
 )
 type TicketmasterClient struct{
 	APIKey string
+	BaseURL string 
+}
+func (t *TicketmasterClient) Base() string { // ← NEW method
+	if t.BaseURL != "" {
+		return t.BaseURL
+	}
+	return "https://app.ticketmaster.com/discovery/v2"
 }
 type tmListResp struct{
 	Embedded struct{
@@ -41,7 +48,8 @@ type tmEvent struct{
 }
 
 func (t *TicketmasterClient)ListEvents(city, countryCode, category string)([]models.Event,error){
-	u:=fmt.Sprintf("https://app.ticketmaster.com/discovery/v2/events.json?apikey=%s&city=%s&countryCode=%s&classificationName=%s&size=6",
+	u:=fmt.Sprintf("%s/events.json?apikey=%s&city=%s&countryCode=%s&classificationName=%s&size=6",
+		t.Base(),
 		url.QueryEscape(t.APIKey),
 		url.QueryEscape(city),
 		url.QueryEscape(countryCode),
@@ -85,8 +93,8 @@ func (t *TicketmasterClient)ListEvents(city, countryCode, category string)([]mod
 	return out,nil
 }
 func (t *TicketmasterClient)GetEvent(eventID string) (*models.Event, error){
-	u:=fmt.Sprintf("https://app.ticketmaster.com/discovery/v2/events/%s.json?apikey=%s",
-		url.PathEscape(eventID), url.QueryEscape(t.APIKey))
+	u:=fmt.Sprintf("%s/events/%s.json?apikey=%s",
+		t.Base(), url.PathEscape(eventID), url.QueryEscape(t.APIKey))
 	resp,err:=http.Get(u)
 	if err !=nil{
 		return nil,err

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"net/url"
+	"errors"
 	"eventx/cache"
 	"eventx/models"
 )
@@ -68,23 +70,30 @@ func (s *EventService)GetListing(city,countryCode,scenario string)(models.EventS
 	wg.Wait()
 	return music.section,sports.section
 }
+func ValidateTicketURL(rawURL string, approvedHosts []string) (string, error) {
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return "", errors.New("invalid URL format")
+	}
 
-func ValidateTicketURL(rawURL string,approvedHosts []string)(string, error) {
-	if rawURL==""{
-		return "",fmt.Errorf("ticket link unavailable")
+	if parsedURL.Scheme != "https" { // HTTPS only
+		return "", errors.New("ticket destination must use https")
 	}
-	if !strings.HasPrefix(rawURL,"https://") {
-		return "",fmt.Errorf("ticket destination blocked")
+
+	hostname := strings.ToLower(parsedURL.Hostname())
+	if hostname == "" {
+		return "", errors.New("missing hostname")
 	}
-	rest:=strings.TrimPrefix(rawURL, "https://")
-	host:=rest
-	if i := strings.IndexAny(rest, "/?"); i >= 0 {
-		host =rest[:i]
-	}
-	for _, h:=range approvedHosts {
-		if strings.EqualFold(host, h) {
-			return rawURL,nil
+
+	for _, approved := range approvedHosts {
+		approved = strings.ToLower(strings.TrimSpace(approved))
+		if approved == "" {
+			continue
+		}
+		if hostname == approved || strings.HasSuffix(hostname, "."+approved) {
+			return rawURL, nil 
 		}
 	}
-	return "",fmt.Errorf("ticket destination blocked")
+
+	return "", errors.New("host not approved")
 }

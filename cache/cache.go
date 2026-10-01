@@ -47,8 +47,32 @@ func (c *Cache)Set(key string,events []models.Event) {
 		expiresAt:time.Now().Add(c.ttl),
 	}
 }
-func (c *Cache) Reset() {
+func (c *Cache) Reset()int{
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	n:=len(c.items)
 	c.items= make(map[string]entry)
+	return n
+}
+
+func (c *Cache) Invalidate(key string) bool{
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	_, ok:=c.items[key]
+	if ok{
+		delete(c.items, key)
+	}
+	return ok
+}
+func (c *Cache) InvalidateByPrefix(prefix string)int{
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	n :=0
+	for k:=range c.items{
+		if len(k)>=len(prefix)&&k[:len(prefix)]==prefix{
+			delete(c.items,k)
+			n++
+		}
+	}
+	return n
 }

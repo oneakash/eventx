@@ -20,6 +20,7 @@ func init() {
 	web.Router("/api/locations/autocomplete", &controllers.LocationController{}, "get:Autocomplete")
 	web.Router("/api/locations/:placeId", &controllers.LocationController{}, "get:Resolve")
 
+	web.Router("/api/cache/invalidate", &controllers.CacheController{}, "post:Invalidate")
 	// Health
 	web.Router("/healthz", &controllers.BaseController{}, "get:Health")
 

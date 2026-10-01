@@ -10,6 +10,13 @@ import (
 )
 type GoogleClient struct {
 	APIKey string
+	BaseURL string
+}
+func (g *GoogleClient) Base() string { // ← NEW method
+	if g.BaseURL != "" {
+		return g.BaseURL
+	}
+	return "https://places.googleapis.com"
 }
 type googleAutoReq struct{
 	Input string `json:"input"`
@@ -35,7 +42,7 @@ func (g *GoogleClient) Autocomplete(input,sessionToken string) ([]models.Suggest
 		LanguageCode: "en",
 	})
 	req, _:=http.NewRequest("POST",
-		"https://places.googleapis.com/v1/places:autocomplete",
+		g.Base()+"/v1/places:autocomplete",
 		bytes.NewReader(body))
 	req.Header.Set("Content-Type","application/json")
 	req.Header.Set("X-Goog-Api-Key",g.APIKey)
@@ -80,8 +87,8 @@ type googlePlaceResp struct {
 }
 
 func (g *GoogleClient)Resolve(placeID, sessionToken string)(*models.Place, error){
-	u:=fmt.Sprintf("https://places.googleapis.com/v1/places/%s?sessionToken=%s&languageCode=en",
-		url.PathEscape(placeID), url.QueryEscape(sessionToken))
+	u:=fmt.Sprintf("%s/v1/places/%s?sessionToken=%s&languageCode=en",
+		g.Base(), url.PathEscape(placeID), url.QueryEscape(sessionToken))
 	req,_:=http.NewRequest("GET",u,nil)
 	req.Header.Set("X-Goog-Api-Key",g.APIKey)
 	req.Header.Set("X-Goog-FieldMask","addressComponents")
@@ -120,3 +127,4 @@ func (g *GoogleClient)Resolve(placeID, sessionToken string)(*models.Place, error
 	p.Label=p.City+", "+p.CountryCode
 	return p,nil
 }
+

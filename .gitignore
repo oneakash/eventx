@@ -2,3 +2,4 @@ eventx
 .env
 .env.*
 !.env.example
+*.out
